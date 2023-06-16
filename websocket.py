@@ -7,13 +7,17 @@ import os
 from google.protobuf import any_pb2
 from websockets.server import WebSocketServerProtocol
 import events_pb2
-from aiohttp import web
+from aiohttp import web, ClientSession
+import aiohttp_jinja2
+import jinja2
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('websocket_server')
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "service_account.json"
+os.environ["DISCORD_BOT_TOKEN"] = ""
+os.environ["DISCORD_CHANNEL"] = ""
 
 # Initialize Pub/Sub
 publisher = pubsub_v1.PublisherClient()
@@ -57,11 +61,15 @@ def get_lobby_players():
 
 async def get_lobby_request(request):
     get_lobby_players()
-    return web.json_response({"status": "success", "message": "Request sent successfully"}) 
+    return web.json_response({"status": "success", "message": "Request <get_lobby_request> sent."}) 
 
 async def create_lobby_request(request):
     create_lobby()
-    return web.json_response({"status": "success", "message": "Request sent successfully"})
+    return web.json_response({"status": "success", "message": "Request <create_lobby_request> sent."})
+
+async def get_lobby_token_request(request):
+    get_lobby_token()
+    return web.json_response({"status": "success", "message": "Request <get_lobby_token_request> sent."})
 
 async def ws_handler(websocket, path):
     # Add the new websocket to our set
@@ -87,11 +95,43 @@ async def ws_handler(websocket, path):
         # Remove the websocket from our set when it disconnects
         connected_websockets.remove(websocket)
 
+async def send_discord_message(channel_id: str, token: str, content: str):
+    url = f"https://discord.com/api/channels/{channel_id}/messages"
+    headers = {
+        "Authorization": f"Bot {token}",
+        "Content-Type": "application/json",
+    }
+
+    data = {
+        "content": content,
+    }
+
+    async with ClientSession() as session:
+        async with session.post(url, headers=headers, json=data) as resp:
+            if resp.status != 200:
+                logger.error(f"Failed to send message to Discord: {await resp.text()}")
+
+async def get_lobby_token():
+    # Here I'm assuming that get_lobby_players will somehow obtain a lobby token and I'm using a placeholder.
+    lobbytoken = get_lobby_players()
+    await send_discord_message(os.getenv('DISCORD_CHANNEL'), os.getenv('DISCORD_BOT_TOKEN'), f"!store_token {lobbytoken} false")
+
 
 async def main():
     app = web.Application()
     app.router.add_get('/create_lobby', create_lobby_request)
     app.router.add_get('/get_players', get_lobby_request)
+    app.router.add_get('/send_discord_token', get_lobby_token_request)
+    
+    # Setup Jinja2
+    aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('web'))
+
+    # Add route for index page
+    app.router.add_get('/', index)
+
+    # Add route for static css files
+    #app.router.add_static('/static/', path='/path/to/your/static/files', name='static')
+
     web_runner = web.AppRunner(app)
     await web_runner.setup()
     site = web.TCPSite(web_runner, 'localhost', 8080)
@@ -105,6 +145,10 @@ async def main():
     # Keep the server running
     while True:
         await asyncio.sleep(1)
+
+@aiohttp_jinja2.template('index.html')
+async def index(request):
+    return {}
 
 # Run the main function until it completes
 asyncio.run(main())
