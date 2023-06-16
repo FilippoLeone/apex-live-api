@@ -10,6 +10,13 @@ import events_pb2
 from aiohttp import web, ClientSession
 import aiohttp_jinja2
 import jinja2
+from google.protobuf.json_format import MessageToJson # Import the MessageToJson
+from google.protobuf.json_format import MessageToDict
+import json
+
+
+# In memory store
+data_store = {}
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -26,10 +33,6 @@ topic_path = publisher.topic_path('', 'apexlegends')
 # Set of all currently connected websockets
 connected_websockets = set()
 
-def publish_message(message):
-    data = message.SerializeToString()
-    #future = publisher.publish(topic_path, data=data)
-    logger.info(f"Message published with ID {future.result()}")
 
 def create_lobby():
     request = events_pb2.Request()
@@ -38,7 +41,7 @@ def create_lobby():
 
     # Create a LiveAPIEvent message
     # Publish the LiveAPIEvent message
-    publish_message(request)
+    #publish_message(request)
     logger.info("Sent request to create a custom match lobby.")
 
     # Send to all connected websockets
@@ -52,29 +55,64 @@ def get_lobby_players():
 
     # Create a LiveAPIEvent message
     # Publish the LiveAPIEvent message
-    publish_message(request)
+    #publish_message(request)
     logger.info(f"Pulling player info. {request}")
 
     # Send to all connected websockets
     for ws in connected_websockets:
         asyncio.create_task(ws.send(request.SerializeToString()))
 
+
+def publish_message(message):
+    data = message.encode("utf-8")
+    future = publisher.publish(topic_path, data=data)
+    logger.info(f"Message published with ID {future.result()}")
+
 async def get_lobby_request(request):
-    get_lobby_players()
-    return web.json_response({"status": "success", "message": "Request <get_lobby_request> sent."}) 
+    response = get_lobby_players()
+    # Pull lobby data from in-memory store
+    await asyncio.sleep(1)
+    return web.json_response(data_store.get('rtech.liveapi.CustomMatch_LobbyPlayers', {}))
 
 async def create_lobby_request(request):
-    create_lobby()
-    return web.json_response({"status": "success", "message": "Request <create_lobby_request> sent."})
+    # Create lobby and store response in memory
+    response = create_lobby()
+    return web.json_response(response)
 
 async def get_lobby_token_request(request):
-    get_lobby_token()
-    return web.json_response({"status": "success", "message": "Request <get_lobby_token_request> sent."})
+    # Pull lobby token from in-memory store
+    response = await get_lobby_token()
+    if response:
+        # Requires bot to bot messages parsing in the Bot class of discord.py
+        await send_discord_message(os.getenv('DISCORD_CHANNEL'), os.getenv('DISCORD_BOT_TOKEN'), f"!schedule_autostart {json.loads(response)['playerToken']} false")
+        return web.json_response(json.dumps({'key' : json.loads(response)['playerToken']}))
+    return web.json_response()
+
+async def schedule_autostart_request(request):
+    # Read parameters from request body
+    body = await request.json()
+    lobby_channel_name = body.get('lobby_channel_name')
+    min_max_teams = body.get('min_max_teams')
+    min_max_team_size = body.get('min_max_team_size')
+    time_to_wait = body.get('time_to_wait')
+    start_message = body.get('start_message')
+    private_message = body.get('private_message')
+    keep_autostart = body.get('keep_autostart')
+
+    # Pull lobby token from in-memory store
+    response = await get_lobby_token()
+    if response:
+        player_token = json.loads(response)['playerToken']
+        message = f'!schedule_autostart "{lobby_channel_name}" {min_max_teams} {min_max_team_size} {time_to_wait} "{player_token}" "{private_message}" {keep_autostart}'
+        await send_discord_message(os.getenv('DISCORD_CHANNEL'), os.getenv('DISCORD_BOT_TOKEN'), message)
+        return web.json_response({'key': player_token})
+    return web.json_response()
 
 async def ws_handler(websocket, path):
     # Add the new websocket to our set
     connected_websockets.add(websocket)
     logger.info("New client connected.")
+    
     try:
         async for message in websocket:
             # Handle incoming messages
@@ -85,7 +123,17 @@ async def ws_handler(websocket, path):
             msg_result = symbol_database.Default().GetSymbol(result_type)()
             pblist.gameMessage.Unpack(msg_result)
             logger.info(f"Received message from client: {msg_result}")
-            publish_message(msg_result)
+            
+            # Send the packet data to the WebSocket client
+            msg_dict = MessageToJson(msg_result)
+            if msg_dict:  
+                jsonreq = json.dumps(msg_dict)
+                publish_message(jsonreq)
+                # Store data to in-memory store
+                await websocket.send(jsonreq)
+                data_store[result_type] = msg_dict
+                print(f"Writing {result_type} to data store")
+
     except websockets.exceptions.ConnectionClosedError:
         logger.info("Client disconnected.")
     except Exception as e:
@@ -94,6 +142,8 @@ async def ws_handler(websocket, path):
     finally:
         # Remove the websocket from our set when it disconnects
         connected_websockets.remove(websocket)
+
+
 
 async def send_discord_message(channel_id: str, token: str, content: str):
     url = f"https://discord.com/api/channels/{channel_id}/messages"
@@ -113,18 +163,19 @@ async def send_discord_message(channel_id: str, token: str, content: str):
 
 async def get_lobby_token():
     # Here I'm assuming that get_lobby_players will somehow obtain a lobby token and I'm using a placeholder.
-    lobbytoken = get_lobby_players()
-    await send_discord_message(os.getenv('DISCORD_CHANNEL'), os.getenv('DISCORD_BOT_TOKEN'), f"!store_token {lobbytoken} false")
-
+    get_lobby_players()
+    # Pull lobby data from in-memory store
+    await asyncio.sleep(2)
+    return data_store.get('rtech.liveapi.CustomMatch_LobbyPlayers', {})
 
 async def main():
     app = web.Application()
     app.router.add_get('/create_lobby', create_lobby_request)
     app.router.add_get('/get_players', get_lobby_request)
     app.router.add_get('/send_discord_token', get_lobby_token_request)
-    
+    app.router.add_post('/schedule_autostart', schedule_autostart_request)
     # Setup Jinja2
-    aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('web'))
+    aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('.'))
 
     # Add route for index page
     app.router.add_get('/', index)
