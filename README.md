@@ -1,4 +1,4 @@
-# LiveAPI 2.0 (Bindings) Project
+# Apex Legends LiveAPI 2.0 (Bindings) Project
 
 This Python project is a live API that uses websockets and Google's Pub/Sub messaging middleware for real-time data transmission. It has various features like creating lobbies, getting player information, sending messages to Discord, and scheduling autostarts.
 
