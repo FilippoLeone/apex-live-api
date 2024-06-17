@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Live API 2.0</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
+    <style>
+        .container {
+            margin-top: 20px;
+        }
+        .form-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .form-card {
+            flex: 1 1 calc(50% - 20px);
+            box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1);
+            padding: 20px;
+            border-radius: 5px;
+            background-color: #fff;
+        }
+        .form-card h2 {
+            margin-bottom: 15px;
+        }
+        .form-card .field {
+            margin-bottom: 10px;
+        }
+        .form-card .control {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <section class="section">
+        <div class="container">
+            <h1 class="title">Live API 2.0 (Bindings)</h1>
+            <div class="buttons">
+                <button class="button is-primary" onclick="sendRequest('/create_lobby')">Create Lobby</button>
+                <button class="button is-link" onclick="sendRequest('/get_players')">Get Players</button>
+                <button class="button is-info" onclick="sendRequest('/send_discord_token')">Send Discord Token</button>
+            </div>
+            <div class="container">
+                <pre id="packetData" class="notification"></pre> <!-- Changed div to pre for better JSON formatting -->
+            </div>
+        </div>
+        <div class="container form-container">
+            <!-- Schedule Autostart Form -->
+            <div class="form-card">
+                <h2 class="title">Schedule Autostart</h2>
+                <form id="scheduleAutostartForm">
+                    <div class="field">
+                        <label class="label">Lobby Channel Name</label>
+                        <div class="control">
+                            <input class="input" type="text" id="lobbyChannelName" placeholder="Lobby Channel Name" required>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label">Min Max Teams</label>
+                        <div class="control">
+                            <input class="input" type="text" id="minMaxTeams" placeholder="Min Max Teams" required>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label">Min Max Team Size</label>
+                        <div class="control">
+                            <input class="input" type="text" id="minMaxTeamSize" placeholder="Min Max Team Size" required>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label">Time To Wait</label>
+                        <div class="control">
+                            <input class="input" type="text" id="timeToWait" placeholder="Time To Wait" required>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label">Private Message</label>
+                        <div class="control">
+                            <input class="input" type="text" id="privateMessage" placeholder="Private Message" required>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="control">
+                            <label class="checkbox">
+                                <input type="checkbox" id="keepAutostart"> Keep Autostart
+                            </label>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="control">
+                            <button class="button is-link" type="submit">Schedule Autostart</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Change Camera Form -->
+            <div class="form-card">
+                <h2 class="title">Change Camera</h2>
+                <form id="changeCameraForm">
+                    <div class="field">
+                        <label class="label">Player of Interest</label>
+                        <div class="control">
+                            <input class="input" type="text" id="poi" placeholder="Player of Interest">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label">Player Name</label>
+                        <div class="control">
+                            <input class="input" type="text" id="playerName" placeholder="Player Name" list="playerNames">
+                            <datalist id="playerNames"></datalist>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="control">
+                            <button class="button is-link" type="submit">Change Camera</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Pause Toggle Form -->
+            <div class="form-card">
+                <h2 class="title">Pause Toggle</h2>
+                <form id="pauseToggleForm">
+                    <div class="field">
+                        <label class="label">Pre Timer</label>
+                        <div class="control">
+                            <input class="input" type="text" id="preTimer" placeholder="Pre Timer" required>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="control">
+                            <button class="button is-link" type="submit">Pause Toggle</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Set Ready Form -->
+            <div class="form-card">
+                <h2 class="title">Set Ready</h2>
+                <form id="setReadyForm">
+                    <div class="field">
+                        <label class="label">Is Ready</label>
+                        <div class="control">
+                            <input class="input" type="checkbox" id="isReady">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="control">
+                            <button class="button is-link" type="submit">Set Ready</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Set Matchmaking Form -->
+            <div class="form-card">
+                <h2 class="title">Set Matchmaking</h2>
+                <form id="setMatchmakingForm">
+                    <div class="field">
+                        <label class="label">Enabled</label>
+                        <div class="control">
+                            <input class="input" type="checkbox" id="enabled">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="control">
+                            <button class="button is-link" type="submit">Set Matchmaking</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Set Team Form -->
+            <div class="form-card">
+                <h2 class="title">Set Team</h2>
+                <form id="setTeamForm">
+                    <div class="field">
+                        <label class="label">Team ID</label>
+                        <div class="control">
+                            <input class="input" type="text" id="teamId" placeholder="Team ID" required>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label">Target Hardware Name</label>
+                        <div class="control">
+                            <input class="input" type="text" id="targetHardwareName" placeholder="Target Hardware Name" list="hardwareNames">
+                            <datalist id="hardwareNames"></datalist>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label">Target Nucleus Hash</label>
+                        <div class="control">
+                            <input class="input" type="text" id="targetNucleusHash" placeholder="Target Nucleus Hash" list="nucleusHashes">
+                            <datalist id="nucleusHashes"></datalist>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="control">
+                            <button class="button is-link" type="submit">Set Team</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Kick Player Form -->
+            <div class="form-card">
+                <h2 class="title">Kick Player</h2>
+                <form id="kickPlayerForm">
+                    <div class="field">
+                        <label class="label">Target Hardware Name</label>
+                        <div class="control">
+                            <input class="input" type="text" id="kickTargetHardwareName" placeholder="Target Hardware Name" list="kickHardwareNames">
+                            <datalist id="kickHardwareNames"></datalist>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label">Target Nucleus Hash</label>
+                        <div class="control">
+                            <input class="input" type="text" id="kickTargetNucleusHash" placeholder="Target Nucleus Hash" list="kickNucleusHashes">
+                            <datalist id="kickNucleusHashes"></datalist>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="control">
+                            <button class="button is-link" type="submit">Kick Player</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Set Settings Form -->
+            <div class="form-card">
+                <h2 class="title">Set Settings</h2>
+                <form id="setSettingsForm">
+                    <div class="field">
+                        <label class="label">Settings (JSON)</label>
+                        <div class="control">
+                            <textarea class="textarea" id="settings" placeholder='{"playlistName": "name", "adminChat": true, ...}' required></textarea>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="control">
+                            <button class="button is-link" type="submit">Set Settings</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Send Chat Form -->
+            <div class="form-card">
+                <h2 class="title">Send Chat</h2>
+                <form id="sendChatForm">
+                    <div class="field">
+                        <label class="label">Text</label>
+                        <div class="control">
+                            <input class="input" type="text" id="chatText" placeholder="Chat Text" required>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="control">
+                            <button class="button is-link" type="submit">Send Chat</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+    <script>
+        function sendRequest(url) {
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data) {
+                        let packetDataElement = document.getElementById('packetData');
+                        packetDataElement.textContent = JSON.stringify(data, null, 2);
+                    }
+                }).catch(error => console.error('Error:', error));
+        }
+
+        function populateAutocomplete(url, elementId) {
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    console.log(`Populating ${elementId} with`, data);  // Debug logging
+                    let dataListElement = document.getElementById(elementId);
+                    dataListElement.innerHTML = ''; // Clear existing options
+                    data.forEach(item => {
+                        let option = document.createElement('option');
+                        option.value = item;
+                        dataListElement.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        document.getElementById("scheduleAutostartForm").onsubmit = function(event) {
+            event.preventDefault(); // Prevent the form from submitting normally
+
+            let lobbyChannelName = document.getElementById("lobbyChannelName").value;
+            let minMaxTeams = document.getElementById("minMaxTeams").value;
+            let minMaxTeamSize = document.getElementById("minMaxTeamSize").value;
+            let timeToWait = document.getElementById("timeToWait").value;
+            let privateMessage = document.getElementById("privateMessage").value;
+            let keepAutostart = document.getElementById("keepAutostart").checked;
+
+            let params = {
+                lobby_channel_name: lobbyChannelName,
+                min_max_teams: minMaxTeams,
+                min_max_team_size: minMaxTeamSize,
+                time_to_wait: timeToWait,
+                private_message: privateMessage,
+                keep_autostart: keepAutostart,
+            };
+
+            fetch('/schedule_autostart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(params),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        };
+
+        document.getElementById("changeCameraForm").onsubmit = function(event) {
+            event.preventDefault();
+
+            let poi = document.getElementById("poi").value;
+            let playerName = document.getElementById("playerName").value;
+
+            let params = { poi, name: playerName };
+
+            fetch('/change_camera', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(params),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        };
+
+        document.getElementById("pauseToggleForm").onsubmit = function(event) {
+            event.preventDefault();
+
+            let preTimer = document.getElementById("preTimer").value;
+
+            let params = { preTimer };
+
+            fetch('/pause_toggle', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(params),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        };
+
+        document.getElementById("setReadyForm").onsubmit = function(event) {
+            event.preventDefault();
+
+            let isReady = document.getElementById("isReady").checked;
+
+            let params = { isReady };
+
+            fetch('/set_ready', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(params),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        };
+
+        document.getElementById("setMatchmakingForm").onsubmit = function(event) {
+            event.preventDefault();
+
+            let enabled = document.getElementById("enabled").checked;
+
+            let params = { enabled };
+
+            fetch('/set_matchmaking', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(params),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        };
+
+        document.getElementById("setTeamForm").onsubmit = function(event) {
+            event.preventDefault();
+
+            let teamId = document.getElementById("teamId").value;
+            let targetHardwareName = document.getElementById("targetHardwareName").value;
+            let targetNucleusHash = document.getElementById("targetNucleusHash").value;
+
+            let params = { teamId, targetHardwareName, targetNucleusHash };
+
+            fetch('/set_team', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(params),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        };
+
+        document.getElementById("kickPlayerForm").onsubmit = function(event) {
+            event.preventDefault();
+
+            let targetHardwareName = document.getElementById("kickTargetHardwareName").value;
+            let targetNucleusHash = document.getElementById("kickTargetNucleusHash").value;
+
+            let params = { targetHardwareName, targetNucleusHash };
+
+            fetch('/kick_player', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(params),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        };
+
+        document.getElementById("setSettingsForm").onsubmit = function(event) {
+            event.preventDefault();
+
+            let settings = document.getElementById("settings").value;
+
+            let params = JSON.parse(settings);
+
+            fetch('/set_settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(params),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        };
+
+        document.getElementById("sendChatForm").onsubmit = function(event) {
+            event.preventDefault();
+
+            let text = document.getElementById("chatText").value;
+
+            let params = { text };
+
+            fetch('/send_chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(params),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        };
+
+        // Populate autocomplete fields on document load
+        document.addEventListener("DOMContentLoaded", function() {
+            populateAutocomplete('/get_player_names', 'playerNames');
+            populateAutocomplete('/get_hardware_names', 'hardwareNames');
+            populateAutocomplete('/get_hardware_names', 'kickHardwareNames');
+            populateAutocomplete('/get_nucleus_hashes', 'nucleusHashes');
+            populateAutocomplete('/get_nucleus_hashes', 'kickNucleusHashes');
+        });
+    </script>
+</body>
+</html>
