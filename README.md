@@ -27,6 +27,7 @@ This Python project is a live API that uses websockets and Google's Pub/Sub mess
 * index.html: Client-side script for interacting with the server.
 
 ## Setup
+Clone the repository in the LiveAPI folder of Apex, where you will also compile your events_pb2 file as specified in the LiveAPI folder readme file from the Apex Legends devs.
 
 ### Prerequisites
 You need to install the following Python libraries, if they're not already installed.
