@@ -154,7 +154,6 @@ def store_data(result_type, data):
 async def get_lobby_token():
     request = get_lobby_players()
     # Assuming get_lobby_players will somehow obtain a lobby token
-    await asyncio.sleep(2)
     return data_store.get('rtech.liveapi.CustomMatch_LobbyPlayers', {})
 
 def get_data_store():
