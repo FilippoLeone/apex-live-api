@@ -16,13 +16,8 @@ async def get_data(request):
         return web.json_response(data)
     return web.json_response(get_data_store())
 
-async def fetch_lobby_players():
-    request = apex_events.get_lobby_players()
-
-    return get_data_by_type('rtech.liveapi.CustomMatch_LobbyPlayers')
-
 async def get_lobby_request(request):
-    lobby_players = await fetch_lobby_players()
+    lobby_players = await apex_events.fetch_lobby_players()
     return web.json_response(lobby_players)
 
 async def create_lobby_request(request):
@@ -119,30 +114,30 @@ async def index(request):
 # New endpoints for fetching player names, hardware names, and nucleus hashes
 
 async def get_player_names(request):
-    players = apex_events.get_data_store().get('rtech.liveapi.CustomMatch_LobbyPlayers', {}).get('players', [])
+    players = get_data_store().get('rtech.liveapi.CustomMatch_LobbyPlayers', {}).get('players', [])
     if not players:
-        await fetch_lobby_players()
-        players = apex_events.get_data_store().get('rtech.liveapi.CustomMatch_LobbyPlayers', {}).get('players', [])
+        await apex_events.fetch_lobby_players()
+        players = get_data_store().get('rtech.liveapi.CustomMatch_LobbyPlayers', {}).get('players', [])
     
     player_names = [player['name'] for player in players]
     logger.info(f"Player names: {player_names}")
     return web.json_response(player_names)
 
 async def get_hardware_names(request):
-    players = apex_events.get_data_store().get('rtech.liveapi.CustomMatch_LobbyPlayers', {}).get('players', [])
+    players = get_data_store().get('rtech.liveapi.CustomMatch_LobbyPlayers', {}).get('players', [])
     if not players:
-        await fetch_lobby_players()
-        players = apex_events.get_data_store().get('rtech.liveapi.CustomMatch_LobbyPlayers', {}).get('players', [])
+        await apex_events.fetch_lobby_players()
+        players = get_data_store().get('rtech.liveapi.CustomMatch_LobbyPlayers', {}).get('players', [])
     
     hardware_names = [player['hardwareName'] for player in players]
     logger.info(f"Hardware names: {hardware_names}")
     return web.json_response(hardware_names)
 
 async def get_nucleus_hashes(request):
-    players = apex_events.get_data_store().get('rtech.liveapi.CustomMatch_LobbyPlayers', {}).get('players', [])
+    players = get_data_store().get('rtech.liveapi.CustomMatch_LobbyPlayers', {}).get('players', [])
     if not players:
-        await fetch_lobby_players()
-        players = apex_events.get_data_store().get('rtech.liveapi.CustomMatch_LobbyPlayers', {}).get('players', [])
+        await apex_events.fetch_lobby_players()
+        players = get_data_store().get('rtech.liveapi.CustomMatch_LobbyPlayers', {}).get('players', [])
     
     nucleus_hashes = [player['nucleusHash'] for player in players]
     logger.info(f"Nucleus hashes: {nucleus_hashes}")
