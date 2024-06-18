@@ -38,7 +38,7 @@ You need to install the following Python libraries, if they're not already insta
 
 You can install these libraries using pip:
 
-    ```sh
+    ```
     pip install websockets google-cloud-pubsub aiohttp aiohttp_jinja2 jinja2
     ```
 
@@ -51,7 +51,7 @@ You also need to set up a few environment variables:
 ### Running the server
 You can run the server script using Python 3.8 or later:
 
-    ```sh
+    ```
     python main.py
     ```
 
