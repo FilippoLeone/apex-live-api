@@ -38,9 +38,7 @@ You need to install the following Python libraries, if they're not already insta
 
 You can install these libraries using pip:
 
-    ```
     pip install websockets google-cloud-pubsub aiohttp aiohttp_jinja2 jinja2
-    ```
 
 ### Environment Variables
 You also need to set up a few environment variables:
@@ -51,12 +49,10 @@ You also need to set up a few environment variables:
 ### Running the server
 You can run the server script using Python 3.8 or later:
 
-    ```
     python main.py
-    ```
 
 ### Client-Side Interactions
-Open `index.html` in your web browser. This client-side script provides a user interface to interact with the server. You can create lobbies, get player information, send Discord token, and schedule autostart.
+Open `localhost:8080` in your web browser. This client-side script provides a user interface to interact with the server. You can create lobbies, get player information, send Discord token, and schedule autostart.
 
 ## Usage
 Once the server is running, you can interact with it from the `index.html` page. There are four buttons that can be used to send requests to the server:
