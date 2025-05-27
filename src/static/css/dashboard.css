@@ -1,0 +1,468 @@
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    color: #2d3748;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Header styles */
+.header {
+    text-align: center;
+    margin-bottom: 40px;
+    color: white;
+}
+
+.header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.header p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    font-weight: 300;
+}
+
+/* Dashboard layout */
+.dashboard {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+/* Panel styles */
+.quick-actions, .response-panel, .forms-section {
+    background: white;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    backdrop-filter: blur(10px);
+}
+
+.quick-actions h2, .response-panel h3, .forms-section h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #2d3748;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Button styles */
+.btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 14px 20px;
+    border-radius: 10px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.95rem;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn.secondary {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.btn.success {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.action-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+/* Response panel */
+.response-content {
+    background: #f7fafc;
+    border-radius: 8px;
+    padding: 20px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #e2e8f0;
+}
+
+/* Forms section */
+.forms-section h2 {
+    font-size: 1.8rem;
+    text-align: center;
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+/* Tab styles */
+.tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 30px;
+    justify-content: center;
+}
+
+.tab-btn {
+    background: #f7fafc;
+    border: 1px solid #e2e8f0;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.tab-btn.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: transparent;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Form styles */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+    color: #4a5568;
+    font-size: 0.9rem;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: border-color 0.2s ease;
+    background: white;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-control.textarea {
+    min-height: 120px;
+    resize: vertical;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #667eea;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.form-actions {
+    margin-top: 25px;
+    display: flex;
+    gap: 15px;
+    justify-content: flex-end;
+}
+
+.btn-submit {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-submit:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 15px rgba(102, 126, 234, 0.4);
+}
+
+.btn-reset {
+    background: #f7fafc;
+    color: #4a5568;
+    border: 2px solid #e2e8f0;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-reset:hover {
+    background: #edf2f7;
+    border-color: #cbd5e0;
+}
+
+/* Status indicators */
+.status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.status-connected {
+    background: #c6f6d5;
+    color: #22543d;
+}
+
+.status-disconnected {
+    background: #fed7d7;
+    color: #742a2a;
+}
+
+/* Loading animation */
+.loading {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+}
+
+@keyframes slideOut {
+    from { transform: translateX(0); }
+    to { transform: translateX(100%); }
+}
+
+/* Ban status */
+.ban-status {
+    display: inline-block;
+    padding: 4px 8px;
+    margin: 2px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.ban-status.banned {
+    background: #fed7d7;
+    color: #742a2a;
+    border: 1px solid #fc8181;
+}
+
+.ban-status.available {
+    background: #c6f6d5;
+    color: #276749;
+    border: 1px solid #68d391;
+}
+
+/* Legend card styles */
+.legend-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.legend-card {
+    padding: 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.legend-card:hover {
+    border-color: #4299e1;
+    background: #f7fafc;
+}
+
+.legend-card.banned {
+    border-color: #fc8181;
+    background: #fed7d7;
+    color: #742a2a;
+}
+
+.legend-card.available {
+    border-color: #68d391;
+    background: #c6f6d5;
+    color: #276749;
+}
+
+/* Camera controls */
+.quick-camera-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.quick-camera-btn {
+    padding: 10px 15px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: transform 0.2s ease;
+}
+
+.quick-camera-btn:hover {
+    transform: translateY(-2px);
+}
+
+.coordinate-input {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.coordinate-input input {
+    text-align: center;
+}
+
+/* Lobby display styles */
+.team-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #f9f9f9;
+}
+
+.team-section h4 {
+    margin-bottom: 10px;
+    color: #2d3748;
+    font-weight: 600;
+}
+
+.players-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+}
+
+.player-card {
+    padding: 10px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+}
+
+.player-card strong {
+    display: block;
+    margin-bottom: 5px;
+    color: #2d3748;
+}
+
+.player-card small {
+    display: block;
+    color: #666;
+    font-size: 0.8rem;
+}
+
+.form-help {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 5px;
+    display: block;
+}
+
+/* Responsive design */
+@media (max-width: 1024px) {
+    .dashboard {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+    
+    .header h1 {
+        font-size: 2rem;
+    }
+    
+    .tabs {
+        flex-direction: column;
+    }
+    
+    .tab-btn {
+        text-align: center;
+    }
+}

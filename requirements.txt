@@ -3,4 +3,5 @@ aiohttp_jinja2
 google-cloud-pubsub
 jinja2
 websockets
-protobuf
+protobuf==6.31.0 # Match the gencode version from the error
+redis

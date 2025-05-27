@@ -1,531 +1,454 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Live API 2.0</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
-    <style>
-        .container {
-            margin-top: 20px;
-        }
-        .form-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-        .form-card {
-            flex: 1 1 calc(50% - 20px);
-            box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1);
-            padding: 20px;
-            border-radius: 5px;
-            background-color: #fff;
-        }
-        .form-card h2 {
-            margin-bottom: 15px;
-        }
-        .form-card .field {
-            margin-bottom: 10px;
-        }
-        .form-card .control {
-            margin-bottom: 10px;
-        }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apex Legends Live API Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
 </head>
 <body>
-    <section class="section">
-        <div class="container">
-            <h1 class="title">Live API 2.0 (Bindings)</h1>
-            <div class="buttons">
-                <button class="button is-primary" onclick="sendRequest('/create_lobby')">Create Lobby</button>
-                <button class="button is-link" onclick="sendRequest('/get_players')">Get Players</button>
-                <button class="button is-info" onclick="sendRequest('/send_discord_token')">Send Discord Token</button>
-            </div>
-            <div class="container">
-                <pre id="packetData" class="notification"></pre> <!-- Changed div to pre for better JSON formatting -->
-            </div>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-gamepad"></i> Apex Legends Live API</h1>
+            <p>Professional Dashboard for Live Game Management</p>
+        </header>
+
+        <div class="dashboard">
+            <!-- Quick Actions Panel -->
+            <section class="quick-actions">
+                <h2><i class="fas fa-bolt"></i> Quick Actions</h2>                <div class="action-buttons">
+                    <button class="btn" onclick="createLobby()">
+                        <i class="fas fa-plus-circle"></i> Create Lobby
+                    </button>
+                    <button class="btn secondary" onclick="refreshLobbyData()">
+                        <i class="fas fa-users"></i> Get Players
+                    </button>
+                    <button class="btn" onclick="testServerRoutes()" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                        <i class="fas fa-heartbeat"></i> Test Server
+                    </button>
+                    <button class="btn" onclick="enableMatchmaking()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <i class="fas fa-search"></i> Enable Matchmaking
+                    </button>
+                    <button class="btn" onclick="scheduleAutostart()" style="background: linear-gradient(135deg, #e53e3e 0%, #f56565 100%);">
+                        <i class="fas fa-play"></i> Schedule Autostart
+                    </button>
+                    <button class="btn success" onclick="sendRequest('/send_discord_token', 'GET')">
+                        <i class="fab fa-discord"></i> Send Discord Token
+                    </button>
+                    <button class="btn" onclick="loadAutocompleteData()" style="background: linear-gradient(135deg, #fd7e14 0%, #ffc107 100%);">
+                        <i class="fas fa-refresh"></i> Refresh Data
+                    </button>
+                </div>
+                
+                <!-- Quick Status Panel -->
+                <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #4299e1;">
+                    <h4 style="margin: 0 0 10px 0; color: #2d3748;">
+                        <i class="fas fa-info-circle"></i> Lobby Status
+                    </h4>
+                    <div id="lobbyStatusInfo" style="color: #4a5568; font-size: 0.9rem;">
+                        Click "Get Players" to load current lobby information
+                    </div>
+                </div>
+
+                <!-- Quick Camera Controls -->
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                    <h4 style="margin-bottom: 15px; color: #4a5568;">
+                        <i class="fas fa-video"></i> Quick Camera
+                    </h4>
+                    <div class="quick-camera-grid">
+                        <button class="quick-camera-btn" onclick="changeToKillLeader()">
+                            <i class="fas fa-crown"></i> Kill Leader
+                        </button>
+                        <button class="quick-camera-btn" onclick="changeToClosestEnemy()">
+                            <i class="fas fa-crosshairs"></i> Closest Enemy
+                        </button>
+                        <button class="quick-camera-btn" onclick="changeToNextPlayer()">
+                            <i class="fas fa-arrow-right"></i> Next Player
+                        </button>
+                        <button class="quick-camera-btn" onclick="changeToPreviousPlayer()">
+                            <i class="fas fa-arrow-left"></i> Previous Player
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Response Panel -->
+            <section class="response-panel">
+                <h3><i class="fas fa-terminal"></i> System Response</h3>
+                <div class="response-content" id="responseOutput">
+                    <div style="color: #666; text-align: center; padding: 20px;">
+                        <i class="fas fa-clock"></i> Waiting for actions...
+                    </div>
+                </div>
+            </section>
         </div>
-        <div class="container form-container">
-            <!-- Schedule Autostart Form -->
-            <div class="form-card">
-                <h2 class="title">Schedule Autostart</h2>
-                <form id="scheduleAutostartForm">
-                    <div class="field">
-                        <label class="label">Lobby Channel Name</label>
-                        <div class="control">
-                            <input class="input" type="text" id="lobbyChannelName" placeholder="Lobby Channel Name" required>
-                        </div>
-                    </div>
-                    <div class="field">
-                        <label class="label">Min Max Teams</label>
-                        <div class="control">
-                            <input class="input" type="text" id="minMaxTeams" placeholder="Min Max Teams" required>
-                        </div>
-                    </div>
-                    <div class="field">
-                        <label class="label">Min Max Team Size</label>
-                        <div class="control">
-                            <input class="input" type="text" id="minMaxTeamSize" placeholder="Min Max Team Size" required>
-                        </div>
-                    </div>
-                    <div class="field">
-                        <label class="label">Time To Wait</label>
-                        <div class="control">
-                            <input class="input" type="text" id="timeToWait" placeholder="Time To Wait" required>
-                        </div>
-                    </div>
-                    <div class="field">
-                        <label class="label">Private Message</label>
-                        <div class="control">
-                            <input class="input" type="text" id="privateMessage" placeholder="Private Message" required>
-                        </div>
-                    </div>
-                    <div class="field">
-                        <div class="control">
-                            <label class="checkbox">
-                                <input type="checkbox" id="keepAutostart"> Keep Autostart
-                            </label>
-                        </div>
-                    </div>
-                    <div class="field">
-                        <div class="control">
-                            <button class="button is-link" type="submit">Schedule Autostart</button>
-                        </div>
-                    </div>
-                </form>
+
+        <!-- Forms Section -->
+        <section class="forms-section">
+            <h2><i class="fas fa-cogs"></i> API Controls</h2>
+            
+            <!-- Tab Navigation -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="showTab('lobby')">
+                    <i class="fas fa-users"></i> Lobby Management
+                </button>
+                <button class="tab-btn" onclick="showTab('legends')">
+                    <i class="fas fa-user-ninja"></i> Legend Control
+                </button>
+                <button class="tab-btn" onclick="showTab('settings')">
+                    <i class="fas fa-cog"></i> Match Settings
+                </button>
+                <button class="tab-btn" onclick="showTab('camera')">
+                    <i class="fas fa-video"></i> Camera Control
+                </button>
+                <button class="tab-btn" onclick="showTab('chat')">
+                    <i class="fas fa-comments"></i> Chat & Communication
+                </button>
             </div>
 
-            <!-- Change Camera Form -->
-            <div class="form-card">
-                <h2 class="title">Change Camera</h2>
-                <form id="changeCameraForm">
-                    <div class="field">
-                        <label class="label">Player of Interest</label>
-                        <div class="control">
-                            <input class="input" type="text" id="poi" placeholder="Player of Interest">
-                        </div>
+            <!-- Lobby Management Tab -->
+            <div class="tab-content active" id="lobby">
+                <!-- Current Lobby Display -->
+                <div style="margin-bottom: 30px;">
+                    <h4 style="margin-bottom: 15px; color: #4a5568;">
+                        <i class="fas fa-list"></i> Current Lobby
+                        <button class="btn" style="margin-left: 10px; padding: 6px 12px; font-size: 0.8rem;" onclick="refreshLobbyData()">
+                            <i class="fas fa-sync"></i> Refresh
+                        </button>
+                    </h4>
+                    <div id="lobbyPlayersDisplay" style="background: #f7fafc; border-radius: 8px; padding: 15px; border: 1px solid #e2e8f0; min-height: 100px;">
+                        Click "Refresh" to load current lobby players
                     </div>
-                    <div class="field">
-                        <label class="label">Player Name</label>
-                        <div class="control">
-                            <input class="input" type="text" id="playerName" placeholder="Player Name" list="playerNames">
-                            <datalist id="playerNames"></datalist>
-                        </div>
-                    </div>
-                    <div class="field">
-                        <div class="control">
-                            <button class="button is-link" type="submit">Change Camera</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
+                </div>
 
-            <!-- Pause Toggle Form -->
-            <div class="form-card">
-                <h2 class="title">Pause Toggle</h2>
-                <form id="pauseToggleForm">
-                    <div class="field">
-                        <label class="label">Pre Timer</label>
-                        <div class="control">
-                            <input class="input" type="text" id="preTimer" placeholder="Pre Timer" required>
-                        </div>
-                    </div>
-                    <div class="field">
-                        <div class="control">
-                            <button class="button is-link" type="submit">Pause Toggle</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Set Ready Form -->
-            <div class="form-card">
-                <h2 class="title">Set Ready</h2>
-                <form id="setReadyForm">
-                    <div class="field">
-                        <label class="label">Is Ready</label>
-                        <div class="control">
-                            <input class="input" type="checkbox" id="isReady">
-                        </div>
-                    </div>
-                    <div class="field">
-                        <div class="control">
-                            <button class="button is-link" type="submit">Set Ready</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Set Matchmaking Form -->
-            <div class="form-card">
-                <h2 class="title">Set Matchmaking</h2>
-                <form id="setMatchmakingForm">
-                    <div class="field">
-                        <label class="label">Enabled</label>
-                        <div class="control">
-                            <input class="input" type="checkbox" id="enabled">
-                        </div>
-                    </div>
-                    <div class="field">
-                        <div class="control">
-                            <button class="button is-link" type="submit">Set Matchmaking</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Set Team Form -->
-            <div class="form-card">
-                <h2 class="title">Set Team</h2>
+                <!-- Team Assignment Form -->
                 <form id="setTeamForm">
-                    <div class="field">
-                        <label class="label">Team ID</label>
-                        <div class="control">
-                            <input class="input" type="text" id="teamId" placeholder="Team ID" required>
+                    <h4 style="margin-bottom: 15px; color: #4a5568;"><i class="fas fa-users-cog"></i> Team Assignment</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Team ID</label>
+                            <select class="form-control" id="teamId" required>
+                                <option value="">Select team...</option>
+                                <option value="0">👁️ Observers</option>
+                            </select>
                         </div>
-                    </div>
-                    <div class="field">
-                        <label class="label">Target Hardware Name</label>
-                        <div class="control">
-                            <input class="input" type="text" id="targetHardwareName" placeholder="Target Hardware Name" list="hardwareNames">
+                        <div class="form-group">
+                            <label>Player Name</label>
+                            <input class="form-control" type="text" id="targetHardwareName" placeholder="Enter player hardware name" list="hardwareNames">
                             <datalist id="hardwareNames"></datalist>
                         </div>
                     </div>
-                    <div class="field">
-                        <label class="label">Target Nucleus Hash</label>
-                        <div class="control">
-                            <input class="input" type="text" id="targetNucleusHash" placeholder="Target Nucleus Hash" list="nucleusHashes">
-                            <datalist id="nucleusHashes"></datalist>
-                        </div>
+                    <div class="form-group">
+                        <label>Nucleus Hash (Optional)</label>
+                        <input class="form-control" type="text" id="targetNucleusHash" placeholder="Enter nucleus hash for precision targeting" list="nucleusHashes">
+                        <datalist id="nucleusHashes"></datalist>
+                        <small class="form-help">Hardware name is usually sufficient for player identification</small>
                     </div>
-                    <div class="field">
-                        <div class="control">
-                            <button class="button is-link" type="submit">Set Team</button>
-                        </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-submit">
+                            <i class="fas fa-user-plus"></i> Assign to Team
+                        </button>
                     </div>
                 </form>
-            </div>
 
-            <!-- Kick Player Form -->
-            <div class="form-card">
-                <h2 class="title">Kick Player</h2>
-                <form id="kickPlayerForm">
-                    <div class="field">
-                        <label class="label">Target Hardware Name</label>
-                        <div class="control">
-                            <input class="input" type="text" id="kickTargetHardwareName" placeholder="Target Hardware Name" list="kickHardwareNames">
+                <!-- Kick Player Form -->
+                <form id="kickPlayerForm" style="margin-top: 30px;">
+                    <h4 style="margin-bottom: 15px; color: #4a5568;"><i class="fas fa-user-times"></i> Remove Player</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Player Hardware Name</label>
+                            <input class="form-control" type="text" id="kickTargetHardwareName" placeholder="Enter player hardware name" list="kickHardwareNames">
                             <datalist id="kickHardwareNames"></datalist>
                         </div>
-                    </div>
-                    <div class="field">
-                        <label class="label">Target Nucleus Hash</label>
-                        <div class="control">
-                            <input class="input" type="text" id="kickTargetNucleusHash" placeholder="Target Nucleus Hash" list="kickNucleusHashes">
+                        <div class="form-group">
+                            <label>Nucleus Hash (Optional)</label>
+                            <input class="form-control" type="text" id="kickTargetNucleusHash" placeholder="Enter nucleus hash" list="kickNucleusHashes">
                             <datalist id="kickNucleusHashes"></datalist>
                         </div>
                     </div>
-                    <div class="field">
-                        <div class="control">
-                            <button class="button is-link" type="submit">Kick Player</button>
-                        </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-submit" style="background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);">
+                            <i class="fas fa-user-times"></i> Kick Player
+                        </button>
                     </div>
                 </form>
             </div>
 
-            <!-- Set Settings Form -->
-            <div class="form-card">
-                <h2 class="title">Set Settings</h2>
+            <!-- Legend Control Tab -->
+            <div class="tab-content" id="legends">
+                <div style="margin-bottom: 30px;">
+                    <h4 style="margin-bottom: 15px; color: #4a5568;">
+                        <i class="fas fa-ban"></i> Legend Ban Status
+                        <button class="btn" style="margin-left: 10px; padding: 6px 12px; font-size: 0.8rem;" onclick="loadLegendBanStatus()">
+                            <i class="fas fa-sync"></i> Load Status
+                        </button>
+                    </h4>
+                    <div id="legendBanStatusDisplay" style="background: #f7fafc; border-radius: 8px; padding: 15px; border: 1px solid #e2e8f0; min-height: 80px;">
+                        Click "Load Status" to check current legend ban status
+                    </div>
+                </div>
+
+                <form id="setLegendBanForm">
+                    <h4 style="margin-bottom: 15px; color: #4a5568;"><i class="fas fa-gavel"></i> Legend Ban Control</h4>
+                    <div id="legendSelectionGrid" class="legend-grid">
+                        <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #666;">
+                            Load legend ban status first to see available legends
+                        </div>
+                    </div>
+                    <div class="form-actions" style="margin-top: 20px;">
+                        <button type="button" class="btn-reset" onclick="resetLegendBans()">Clear All Bans</button>
+                        <button type="submit" class="btn-submit">
+                            <i class="fas fa-gavel"></i> Apply Legend Bans
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Settings Tab -->
+            <div class="tab-content" id="settings">
+                <div style="margin-bottom: 30px;">
+                    <h4 style="margin-bottom: 15px; color: #4a5568;">
+                        <i class="fas fa-download"></i> Current Settings
+                        <button class="btn" style="margin-left: 10px; padding: 6px 12px; font-size: 0.8rem;" onclick="getCurrentSettings()">
+                            <i class="fas fa-sync"></i> Load Current
+                        </button>
+                    </h4>
+                    <div id="currentSettingsDisplay" style="background: #f7fafc; border-radius: 8px; padding: 15px; font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace; font-size: 0.9rem; border: 1px solid #e2e8f0; min-height: 100px;">
+                        Click "Load Current" to fetch current match settings
+                    </div>
+                </div>
+
                 <form id="setSettingsForm">
-                    <div class="field">
-                        <label class="label">Settings (JSON)</label>
-                        <div class="control">
-                            <textarea class="textarea" id="settings" placeholder='{"playlistName": "name", "adminChat": true, ...}' required></textarea>
+                    <h4 style="margin-bottom: 15px; color: #4a5568;"><i class="fas fa-cog"></i> Match Settings</h4>
+                    
+                    <!-- Settings Form Helper -->
+                    <div style="background: #e6fffa; border: 1px solid #81e6d9; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                        <h5 style="margin: 0 0 10px 0; color: #234e52;">
+                            <i class="fas fa-magic"></i> Quick Settings Generator
+                        </h5>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Playlist Name</label>
+                                <input class="form-control" type="text" id="playlistName" placeholder="e.g., des_new_spawn_pm">
+                            </div>
+                            <div class="form-group">
+                                <label>Target Player (Optional)</label>
+                                <input class="form-control" type="text" id="settingsPlayerName" placeholder="Select player" list="playerNames">
+                            </div>
                         </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="adminChat">
+                                    <label for="adminChat">Admin Chat</label>
+                                </div>
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="teamRename">
+                                    <label for="teamRename">Team Rename</label>
+                                </div>
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="selfAssign" checked>
+                                    <label for="selfAssign">Self Assign</label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="aimAssist" checked>
+                                    <label for="aimAssist">Aim Assist</label>
+                                </div>
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="anonMode">
+                                    <label for="anonMode">Anonymous Mode</label>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn secondary" style="margin-top: 10px;" onclick="populateSettingsFromForm()">
+                            <i class="fas fa-code"></i> Generate JSON
+                        </button>
                     </div>
-                    <div class="field">
-                        <div class="control">
-                            <button class="button is-link" type="submit">Set Settings</button>
-                        </div>
+
+                    <div class="form-group">
+                        <label>Settings JSON</label>
+                        <textarea class="form-control textarea" id="settings" placeholder="Enter match settings as JSON object" style="min-height: 200px;"></textarea>
+                        <small class="form-help">Modify the JSON directly or use the generator above</small>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn secondary" onclick="loadCurrentSettings()">
+                            <i class="fas fa-download"></i> Load Current
+                        </button>
+                        <button type="submit" class="btn-submit">
+                            <i class="fas fa-save"></i> Apply Settings
+                        </button>
                     </div>
                 </form>
             </div>
 
-            <!-- Send Chat Form -->
-            <div class="form-card">
-                <h2 class="title">Send Chat</h2>
-                <form id="sendChatForm">
-                    <div class="field">
-                        <label class="label">Text</label>
-                        <div class="control">
-                            <input class="input" type="text" id="chatText" placeholder="Chat Text" required>
+            <!-- Camera Control Tab -->
+            <div class="tab-content" id="camera">
+                <form id="changeCameraForm" style="margin-bottom: 30px;">
+                    <h4 style="margin-bottom: 15px; color: #4a5568;"><i class="fas fa-video"></i> Camera Control</h4>
+                    <div class="form-group">
+                        <label>Camera Target</label>
+                        <select class="form-control" id="poi" required>
+                            <option value="">Select camera target...</option>
+                            <option value="1">Next Player</option>
+                            <option value="2">Previous Player</option>
+                            <option value="3">Kill Leader</option>
+                            <option value="4">Closest Enemy</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-submit">
+                            <i class="fas fa-video"></i> Change Camera
+                        </button>
+                    </div>
+                </form>
+
+                <form id="setCameraPositionForm">
+                    <h4 style="margin-bottom: 15px; color: #4a5568;"><i class="fas fa-map-marker-alt"></i> Camera Position</h4>
+                    <div class="form-group">
+                        <label>Position Coordinates</label>
+                        <div class="coordinate-input">
+                            <input class="form-control" type="number" id="x" placeholder="X" step="0.1">
+                            <input class="form-control" type="number" id="y" placeholder="Y" step="0.1">
+                            <input class="form-control" type="number" id="z" placeholder="Z" step="0.1">
                         </div>
                     </div>
-                    <div class="field">
-                        <div class="control">
-                            <button class="button is-link" type="submit">Send Chat</button>
-                        </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-submit">
+                            <i class="fas fa-crosshairs"></i> Set Position
+                        </button>
                     </div>
                 </form>
             </div>
-        </div>
-    </section>
+
+            <!-- Chat & Communication Tab -->
+            <div class="tab-content" id="chat">
+                <form id="sendChatForm" style="margin-bottom: 30px;">
+                    <h4 style="margin-bottom: 15px; color: #4a5568;"><i class="fas fa-comments"></i> Send Chat Message</h4>
+                    <div class="form-group">
+                        <label>Message</label>
+                        <textarea class="form-control textarea" id="chatText" placeholder="Enter your message" style="min-height: 100px;"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-submit">
+                            <i class="fas fa-paper-plane"></i> Send Message
+                        </button>
+                    </div>
+                </form>
+
+                <form id="setMatchmakingForm">
+                    <h4 style="margin-bottom: 15px; color: #4a5568;"><i class="fas fa-toggle-on"></i> Matchmaking Control</h4>
+                    <div class="form-group">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="enabled">
+                            <label for="enabled">Enable Matchmaking</label>
+                        </div>
+                        <small class="form-help">Controls whether players can find and join the lobby</small>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-submit">
+                            <i class="fas fa-toggle-on"></i> Update Matchmaking
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </div>
+
+    <!-- Hidden datalists for autocomplete -->
+    <datalist id="playerNames"></datalist>
+    <datalist id="hardwareNames"></datalist>
+    <datalist id="kickHardwareNames"></datalist>
+    <datalist id="nucleusHashes"></datalist>
+    <datalist id="kickNucleusHashes"></datalist>
+
+    <script src="/static/js/dashboard.js"></script>
     <script>
-        function sendRequest(url) {
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    if (data) {
-                        let packetDataElement = document.getElementById('packetData');
-                        packetDataElement.textContent = JSON.stringify(data, null, 2);
-                    }
-                }).catch(error => console.error('Error:', error));
-        }
-
-        function populateAutocomplete(url, elementId) {
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    console.log(`Populating ${elementId} with`, data);  // Debug logging
-                    let dataListElement = document.getElementById(elementId);
-                    dataListElement.innerHTML = ''; // Clear existing options
-                    data.forEach(item => {
-                        let option = document.createElement('option');
-                        option.value = item;
-                        dataListElement.appendChild(option);
-                    });
-                })
-                .catch(error => console.error('Error:', error));
-        }
-
-        document.getElementById("scheduleAutostartForm").onsubmit = function(event) {
-            event.preventDefault(); // Prevent the form from submitting normally
-
-            let lobbyChannelName = document.getElementById("lobbyChannelName").value;
-            let minMaxTeams = document.getElementById("minMaxTeams").value;
-            let minMaxTeamSize = document.getElementById("minMaxTeamSize").value;
-            let timeToWait = document.getElementById("timeToWait").value;
-            let privateMessage = document.getElementById("privateMessage").value;
-            let keepAutostart = document.getElementById("keepAutostart").checked;
-
-            let params = {
-                lobby_channel_name: lobbyChannelName,
-                min_max_teams: minMaxTeams,
-                min_max_team_size: minMaxTeamSize,
-                time_to_wait: timeToWait,
-                private_message: privateMessage,
-                keep_autostart: keepAutostart,
-            };
-
-            fetch('/schedule_autostart', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(params),
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log(data);
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-            });
-        };
-
-        document.getElementById("changeCameraForm").onsubmit = function(event) {
-            event.preventDefault();
-
-            let poi = document.getElementById("poi").value;
-            let playerName = document.getElementById("playerName").value;
-
-            let params = { poi, name: playerName };
-
-            fetch('/change_camera', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(params),
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log(data);
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-            });
-        };
-
-        document.getElementById("pauseToggleForm").onsubmit = function(event) {
-            event.preventDefault();
-
-            let preTimer = document.getElementById("preTimer").value;
-
-            let params = { preTimer };
-
-            fetch('/pause_toggle', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(params),
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log(data);
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-            });
-        };
-
-        document.getElementById("setReadyForm").onsubmit = function(event) {
-            event.preventDefault();
-
-            let isReady = document.getElementById("isReady").checked;
-
-            let params = { isReady };
-
-            fetch('/set_ready', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(params),
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log(data);
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-            });
-        };
-
-        document.getElementById("setMatchmakingForm").onsubmit = function(event) {
-            event.preventDefault();
-
-            let enabled = document.getElementById("enabled").checked;
-
-            let params = { enabled };
-
-            fetch('/set_matchmaking', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(params),
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log(data);
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-            });
-        };
-
-        document.getElementById("setTeamForm").onsubmit = function(event) {
-            event.preventDefault();
-
-            let teamId = document.getElementById("teamId").value;
-            let targetHardwareName = document.getElementById("targetHardwareName").value;
-            let targetNucleusHash = document.getElementById("targetNucleusHash").value;
-
-            let params = { teamId, targetHardwareName, targetNucleusHash };
-
-            fetch('/set_team', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(params),
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log(data);
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-            });
-        };
-
-        document.getElementById("kickPlayerForm").onsubmit = function(event) {
-            event.preventDefault();
-
-            let targetHardwareName = document.getElementById("kickTargetHardwareName").value;
-            let targetNucleusHash = document.getElementById("kickTargetNucleusHash").value;
-
-            let params = { targetHardwareName, targetNucleusHash };
-
-            fetch('/kick_player', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(params),
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log(data);
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-            });
-        };
-
-        document.getElementById("setSettingsForm").onsubmit = function(event) {
-            event.preventDefault();
-
-            let settings = document.getElementById("settings").value;
-
-            let params = JSON.parse(settings);
-
-            fetch('/set_settings', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(params),
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log(data);
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-            });
-        };
-
-        document.getElementById("sendChatForm").onsubmit = function(event) {
-            event.preventDefault();
-
-            let text = document.getElementById("chatText").value;
-
-            let params = { text };
-
-            fetch('/send_chat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(params),
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log(data);
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-            });
-        };
-
-        // Populate autocomplete fields on document load
+        // Initialize tab display
         document.addEventListener("DOMContentLoaded", function() {
-            populateAutocomplete('/get_player_names', 'playerNames');
-            populateAutocomplete('/get_hardware_names', 'hardwareNames');
-            populateAutocomplete('/get_hardware_names', 'kickHardwareNames');
-            populateAutocomplete('/get_nucleus_hashes', 'nucleusHashes');
-            populateAutocomplete('/get_nucleus_hashes', 'kickNucleusHashes');
+            showTab('lobby');
         });
+
+        // Generic request function for simple actions with improved error handling
+        function sendRequest(endpoint) {
+            const button = event.target;
+            const originalContent = button.innerHTML;
+            button.innerHTML = '<span class="loading"></span> Processing...';
+            button.disabled = true;
+
+            fetch(endpoint, { method: 'POST' })
+                .then(response => {
+                    console.log(`${endpoint} response status:`, response.status);
+                    return response.text(); // Get as text first for debugging
+                })
+                .then(responseText => {
+                    console.log(`${endpoint} raw response:`, responseText);
+                    
+                    let data;
+                    try {
+                        // Clean the response
+                        const cleanedResponse = responseText.trim();
+                        
+                        // Handle multiple JSON objects concatenated
+                        if (cleanedResponse.includes('}{')) {
+                            console.log('Detected multiple JSON objects, parsing last one');
+                            const jsonParts = cleanedResponse.split('}{');
+                            const lastPart = jsonParts[jsonParts.length - 1];
+                            const jsonToParse = lastPart.startsWith('{') ? lastPart : '{' + lastPart;
+                            data = JSON.parse(jsonToParse);
+                        } else {
+                            data = JSON.parse(cleanedResponse);
+                        }
+                    } catch (parseError) {
+                        console.error(`${endpoint} JSON Parse Error:`, parseError);
+                        data = {
+                            success: false,
+                            message: `Server response parsing error: ${parseError.message}`,
+                            raw_response: responseText
+                        };
+                    }
+                    
+                    updateResponsePanel(data);
+                    if (data.success) {
+                        showNotification(data.message || 'Action completed successfully');
+                    } else {
+                        showNotification(data.message || 'Action failed', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error(`${endpoint} Error:`, error);
+                    showNotification('Network error occurred', 'error');
+                    updateResponsePanel({ error: error.message });
+                })
+                .finally(() => {
+                    button.innerHTML = originalContent;
+                    button.disabled = false;
+                });
+        }
+
+        // Update response panel
+        function updateResponsePanel(data) {
+            const responseOutput = document.getElementById('responseOutput');
+            if (responseOutput) {
+                responseOutput.innerHTML = `<pre style="margin: 0; white-space: pre-wrap;">${JSON.stringify(data, null, 2)}</pre>`;
+            }
+        }
+
+        // Reset legend bans
+        function resetLegendBans() {
+            const checkboxes = document.querySelectorAll('#legendSelectionGrid input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+                const card = checkbox.closest('.legend-card');
+                if (card) {
+                    card.className = 'legend-card available';
+                }
+            });
+            showNotification('All legend bans cleared');
+        }
     </script>
 </body>
 </html>
