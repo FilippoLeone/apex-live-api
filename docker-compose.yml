@@ -1,0 +1,44 @@
+services:
+  app:
+    build:
+      context: . # Assumes Dockerfile is in the same directory
+    ports:
+      - "8080:8080" # HTTP API
+      - "7777:7777" # WebSocket server
+    depends_on:
+      - redis
+    environment:
+      PYTHONUNBUFFERED: 1
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      # Variables to be set by the user, preferably via an .env file
+      DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN}
+      DISCORD_CHANNEL: ${DISCORD_CHANNEL}
+      GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS} # e.g., /app/src/service_account.json
+      PROJECT_ID: ${PROJECT_ID:-gtm-mcv3pd5-ytbin} # Uses default from Dockerfile if not set
+      TOPIC_ID: ${TOPIC_ID:-apexlegends}         # Uses default from Dockerfile if not set
+    volumes: [] # Explicitly an empty list if nothing below is uncommented
+      # Example 1: Google Cloud service account. 
+      # Place service_account.json in ./src and uncomment the line below to use.
+      # To use: remove the line above (volumes: []) and uncomment the line below.
+      # - ./src/service_account.json:/app/src/service_account.json:ro
+      #
+      # Example 2: Development source code mounting.
+      # Uncomment for live reload if you're actively developing the code.
+      # Also remove/comment the 'volumes: []' line above if you uncomment this.
+      # - ./src:/app/src
+    restart: unless-stopped
+
+  redis:
+    image: redis:latest
+    ports:
+      # Expose Redis to the host if you need to connect directly with a Redis client.
+      # Otherwise, it's only accessible to the 'app' service via the Docker network.
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data # Persist Redis data across restarts
+    restart: unless-stopped
+
+volumes:
+  redis_data: # Defines the named volume for Redis persistence
