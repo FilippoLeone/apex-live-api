@@ -489,7 +489,7 @@ async def change_camera_nucleus_hash_request(request):
 async def get_player_names_request(request):
     """Get list of current player names for autocomplete"""
     try:
-        lobby_data = await get_data_by_type('CustomMatch_LobbyPlayers')
+        lobby_data = await get_data_by_type('rtech.liveapi.CustomMatch_LobbyPlayers')
         if lobby_data and 'players' in lobby_data:
             player_names = [player.get('name', '') for player in lobby_data['players'] if player.get('name')]
             return web.json_response(player_names)
@@ -501,7 +501,7 @@ async def get_player_names_request(request):
 async def get_hardware_names_request(request):
     """Get list of current hardware names for autocomplete"""
     try:
-        lobby_data = await get_data_by_type('CustomMatch_LobbyPlayers')
+        lobby_data = await get_data_by_type('rtech.liveapi.CustomMatch_LobbyPlayers')
         if lobby_data and 'players' in lobby_data:
             hardware_names = [player.get('hardwareName', '') for player in lobby_data['players'] if player.get('hardwareName')]
             return web.json_response(hardware_names)
@@ -513,7 +513,7 @@ async def get_hardware_names_request(request):
 async def get_nucleus_hashes_request(request):
     """Get list of current nucleus hashes for autocomplete"""
     try:
-        lobby_data = await get_data_by_type('CustomMatch_LobbyPlayers')
+        lobby_data = await get_data_by_type('rtech.liveapi.CustomMatch_LobbyPlayers')
         if lobby_data and 'players' in lobby_data:
             nucleus_hashes = [player.get('nucleusHash', '') for player in lobby_data['players'] if player.get('nucleusHash')]
             return web.json_response(nucleus_hashes)
