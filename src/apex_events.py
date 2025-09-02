@@ -9,7 +9,9 @@ from data_store import update_data_store, get_data_store, get_data_by_type, wait
 
 # Respect the original file structure for path
 current_script_directory = os.path.dirname(os.path.abspath(__file__))
-parent_directory = os.path.abspath(os.path.join(current_script_directory, os.pardir, os.pardir)) # Pardir two times cuz 2 dir above
+parent_directory = os.path.abspath(
+    os.path.join(current_script_directory, os.pardir, os.pardir)
+)  # Navigate two parent directories up
 sys.path.append(parent_directory)
 import events_pb2
 
